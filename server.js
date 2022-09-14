@@ -18,8 +18,8 @@ const server = require("http").createServer(app);
 const PORT = process.env.PORT || 8000;
 const io = require("socket.io")(server, {
   cors: {
-    // origin: "http://localhost:3000",
-    origin: 'https://cuarto.netlify.app',
+    origin: "http://localhost:3000",
+    // origin: 'https://cuarto.netlify.app',
     methods: ["GET", "POST"],
   },
 });
@@ -185,8 +185,9 @@ function sortRoomMessagesByDate(messages) {
     let date1 = a._id.split("/");
     let date2 = b._id.split("/");
 
-    date1 = date1[2] + date1[0] + date1[1];
-    date2 = date2[2] + date2[0] + date2[1];
+    
+    date1 = date1[2] + date1[1] + date1[0];
+    date2 = date2[2] + date2[1] + date2[0]; 
     return date1 < date2 ? -1 : 1;
   });
 }
@@ -201,15 +202,19 @@ io.on("connection", (socket) => {
   //   )
   // })
 
-  socket.on("typing", async (isTyping, user) => {
-    socket.broadcast.emit("typing", isTyping, user)
+  socket.on("typing", async (myId, roomId) => {
+    socket.broadcast.emit("typing", myId, roomId)
   });
+
+
   // var userId = "";
   socket.on("join-room", async (newRoom, previousRoom, id) => {
     socket.join(newRoom);
     // userId = id;
+    // console.log(newRoom);
     socket.leave(previousRoom);
     let roomMessages = await getLastMessagesFromRoom(newRoom);
+    // console.log(roomMessages);
     roomMessages = sortRoomMessagesByDate(roomMessages);
     socket.emit("room-messages", roomMessages);
   }); 
