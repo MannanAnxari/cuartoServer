@@ -2,8 +2,9 @@ const express = require("express");
 const app = express();
 const userRoutes = require("./routes/userRoutes");
 const User = require("./models/User");
+const CreateGroup = require("./models/Groups");
 const Message = require("./models/Message");
-const rooms = ["KODRZ", "General", "Tech", "Metaverse", "Finance", "Crypto"];
+// const rooms = ["KODRZ", "General", "Tech", "Metaverse", "Finance", "Crypto"];
 const bcrypt = require('bcrypt');
 const cors = require("cors");
 
@@ -18,8 +19,8 @@ const server = require("http").createServer(app);
 const PORT = process.env.PORT || 8000;
 const io = require("socket.io")(server, {
   cors: {
-    // origin: "http://localhost:3000",
-    origin: 'https://cuarto.netlify.app',
+    origin: "http://localhost:3000",
+    // origin: 'https://cuarto.netlify.app',
     methods: ["GET", "POST"],
   },
 });
@@ -126,6 +127,35 @@ app.post("/delete_user_message", async (req, res) => {
     });
 });
 
+app.post('/creategroup', async(req, res)=> {
+  try {
+    const {groupName, groupPass, groupCreator} = req.body; 
+    console.log(groupCreator);
+    const group = await CreateGroup.create({groupName, groupPass, groupCreator});
+    const allgroup = await CreateGroup.find();
+    // res.status(200).json("Group Created Successfully");
+    res.status(200).json({allgroup:allgroup,msg:"Group Created Successfully"});
+  } catch (e) {
+    let msg;
+    if(e.code == 11000){
+      msg = "Group already exists"
+    } else {
+      msg = e.message;
+    } 
+    res.status(400).json(msg)
+  }
+})
+app.post('/fetchallgroups', async(req, res)=> {
+  try { 
+    const allgroup = await CreateGroup.find();
+    // res.status(200).json("Group Created Successfully");
+    // res.status(200).json(allgroup);
+    res.status(200).json({allgroup:allgroup,msg:"Fetched Successfully"});
+  } catch (e) { 
+    res.status(400).json("Error Occurd While Fetching Groups")
+  }
+})
+
 
 app.post("/update_profile_picture", async (req, res) => {
   const { userId, img } = req.body;
@@ -192,9 +222,17 @@ function sortRoomMessagesByDate(messages) {
   });
 }
 io.on("connection", (socket) => {
+
+
   socket.on("new-user", async () => {
     const members = await User.find();
     io.emit("new-user", members);
+  });
+
+
+  socket.on("new-group", async () => {
+    const groups = await CreateGroup.find();
+    socket.emit("new-group", groups);
   });
   // socket.on('remove-user', async () => {
   //   db.collection.remove(
@@ -219,15 +257,16 @@ io.on("connection", (socket) => {
     socket.emit("room-messages", roomMessages);
   }); 
 
-  socket.on("message-room", async (room, content, classname, sender, time, date) => {
+  socket.on("message-room", async (room, content, img, classname, sender, time, date) => {
     const newMessage = await Message.create({
       content,
+      img,
       classname,
       from: sender,
       time,
       date,
       to: room,
-    });
+    }); 
     let roomMessages = await getLastMessagesFromRoom(room);
     roomMessages = sortRoomMessagesByDate(roomMessages);
     // sending message to room
@@ -278,9 +317,14 @@ app.get("/", (req, res) => {
   res.send("Hell this is Working...");
 });
 
-app.get("/rooms", (req, res) => {
-  res.json(rooms);
-});
+// app.get("/rooms", (req, res) => {
+//   res.json(rooms);
+// });
+// app.get("/allrooms", async (req, res) => {
+//   const group = await CreateGroup.create({groupName, groupPass, groupCreator});
+//   console.log(group);
+//   res.status(200).json(allrooms); 
+// });
 
 server.listen(PORT, () => {
   console.log("listening to port", PORT);

@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const MessageSchema = new mongoose.Schema({
   classname: String,
   content: String,
+  img: String,
   from: Object,
   socketid: String,
   time: String,
@@ -12,4 +13,4 @@ const MessageSchema = new mongoose.Schema({
 
 const Message = mongoose.model('Message', MessageSchema);
 
-module.exports = Message
+module.exports = Message;
