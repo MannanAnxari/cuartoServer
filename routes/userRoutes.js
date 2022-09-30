@@ -3,14 +3,14 @@ const User = require('../models/User');
 const CreateGroup = require('../models/Groups')
 
 // creating user
-router.post('/', async(req, res)=> {
+router.post('/', async (req, res) => {
   try {
-    const {name, email, password, picture} = req.body; 
-    const user = await User.create({name, email, password, picture});
+    const { name, email, password, picture } = req.body;
+    const user = await User.create({ name, email, password, picture });
     res.status(201).json(user);
   } catch (e) {
     let msg;
-    if(e.code == 11000){
+    if (e.code == 11000) {
       msg = "User already exists"
     } else {
       msg = e.message;
@@ -24,17 +24,20 @@ router.post('/', async(req, res)=> {
 
 // login user
 
-router.post('/login', async(req, res)=> {
+router.post('/login', async (req, res) => {
   try {
-    const {email, password} = req.body; 
+    const { email, password } = req.body;
     const user = await User.findByCredentials(email, password);
     user.status = 'online';
     await user.save();
     res.status(200).json(user);
   } catch (e) {
-      res.status(400).json(e.message)
+    res.status(400).json(e.message)
   }
-})
+});
+
+
+ 
 
 
 module.exports = router
