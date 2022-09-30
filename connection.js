@@ -12,8 +12,8 @@ const app = express();
 
 mongoose
   .connect(
-    "mongodb://127.0.0.1:27017/oscuro",
-    // 'mongodb+srv://Mnan:Mannan.1@cluster0.wgz54f5.mongodb.net/oscura?retryWrites=true&w=majority',
+    // "mongodb://127.0.0.1:27017/oscuro",
+    'mongodb+srv://Mnan:Mannan.1@cluster0.wgz54f5.mongodb.net/oscura?retryWrites=true&w=majority',
     {
       useNewUrlParser: true,
       useUnifiedTopology: true,
